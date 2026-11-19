@@ -12,7 +12,7 @@ o888ooooood8 `Y8bod8P' `Y8bod8P' `Y888""8o o888o o888o     .8'
 
 # Example: Read Key Vault secrets from App Service within Locally
 
-This example shows an app on App Service reading a secret from Azure Key Vault on [Locally Build](https://locally.build), in the two ways App Service apps usually do it. Both use the web app's **user-assigned managed identity**, so no key, password or connection string is stored anywhere in the app or its settings.
+This example shows how to read a secret from Azure Key Vault in an app on App Service, in the two ways App Service apps usually do it, on [Locally Build](https://locally.build). Both use the web app's **user-assigned managed identity**, so no key, password or connection string is stored anywhere in the app or its settings.
 
 ```
                         ┌─ 1. Key Vault reference (resolved by App Service when the app starts)
@@ -67,18 +67,18 @@ The secret's value comes from a `random_password` resource, so nobody types it i
 * The Locally Plugin for `Microsoft.KeyVault` installed (`locally plugin install --name Microsoft.KeyVault`).
 * The Locally Plugin for `Microsoft.Web` installed (`locally plugin install --name Microsoft.Web`).
 * The Locally Plugin for `Microsoft.ContainerRegistry` installed (`locally plugin install --name Microsoft.ContainerRegistry`).
-* The Locally Plugin for `Microsoft.OperationalInsights` installed (`locally plugin install --name Microsoft.OperationalInsights`).
 * The Locally Plugin for `Microsoft.Insights` installed (`locally plugin install --name Microsoft.Insights`).
+* The Locally Plugin for `Microsoft.OperationalInsights` installed (`locally plugin install --name Microsoft.OperationalInsights`).
 
 ## Running the example
 
-First, make sure your container runtime (Docker or Podman) is running, then start Locally:
+First up, we need to ensure our container runtime (Docker or Podman) is running, then launch Locally:
 
 ```bash
 locally build
 ```
 
-With Locally running, open another terminal and initialise Terraform. This downloads the providers and sets up the module:
+With Locally running, in another terminal we can initialise Terraform, which both downloads the providers we need and configures the module for use:
 
 ```bash
 cd environments/locally
@@ -86,25 +86,33 @@ terraform init
 ```
 
 > [!NOTE]
-> You can use OpenTofu instead by running `tofu` wherever this says `terraform`.
+> It's possible to use OpenTofu here by substituting `terraform` for `tofu`.
 
-Once Terraform is initialised, provision the example:
+With Terraform initialised, we can then provision the example by running:
 
 ```bash
 locally run terraform apply
 ```
 
-During the apply, Terraform builds the app with `docker build` and pushes it to the Container Registry, so the `docker` command needs to be available. With Podman, the `podman-docker` shim or a `docker` alias works.
+As part of the apply, the app is built with `docker build` and pushed into the Container Registry, so the `docker` command needs to be available (with Podman, the `podman-docker` shim or a `docker` alias works).
 
-After you approve the plan and the resources are deployed, the app is running at the URL in the outputs:
+Once you approve the plan and the resources have been deployed, the application is running at the URL in the outputs:
 
 ```
-app_url = "https://locally-example-keyvault-app.furnace.locally:5663"
+https://locally-example-keyvault-app.furnace.locally:5663
 ```
 
-[Open the app](https://locally-example-keyvault-app.furnace.locally:5663). Both sections show the same length and fingerprint, and the page says that both paths see the same value.
+[Open that URL in a browser](https://locally-example-keyvault-app.furnace.locally:5663) and both sections show the same length and fingerprint, and the page says that both paths see the same value.
 
-### Rotating the secret
+---
+
+As this Terraform configuration sends the App Service logs into a Log Analytics Workspace, we can then query them within [the Locally Dashboard, in the Monitoring section](https://localhost:5678/monitoring/components), by running:
+
+```
+AppServiceConsoleLogs | order by TimeGenerated desc
+```
+
+## Rotating the secret
 
 Write a new version of the secret, either with the Azure CLI:
 
@@ -126,18 +134,10 @@ locally run az webapp restart --resource-group locally-example-keyvault-resource
 
 (If you rotated with the Azure CLI, the next `terraform apply` writes Terraform's value back as yet another version, because the secret no longer matches its configuration.)
 
----
-
 You can list the secret's versions from the CLI:
 
 ```bash
 locally run az keyvault secret list-versions --vault-name locallyexamplekeyvaultkv --name demo-secret -o table
-```
-
-The app sends its logs to a Log Analytics Workspace. You can query them in [the Monitoring section of the Locally Dashboard](https://localhost:5678/monitoring/components) by running:
-
-```
-AppServiceConsoleLogs | order by TimeGenerated desc
 ```
 
 ## Notes
