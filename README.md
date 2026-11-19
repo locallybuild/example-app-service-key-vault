@@ -68,6 +68,7 @@ The secret's value comes from a `random_password` resource, so nobody types it i
 * The Locally Plugin for `Microsoft.Web` installed (`locally plugin install --name Microsoft.Web`).
 * The Locally Plugin for `Microsoft.ContainerRegistry` installed (`locally plugin install --name Microsoft.ContainerRegistry`).
 * The Locally Plugin for `Microsoft.OperationalInsights` installed (`locally plugin install --name Microsoft.OperationalInsights`).
+* The Locally Plugin for `Microsoft.Insights` installed (`locally plugin install --name Microsoft.Insights`).
 
 ## Running the example
 
